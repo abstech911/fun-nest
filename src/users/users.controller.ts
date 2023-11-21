@@ -1,0 +1,41 @@
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UsersService } from './users.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { instanceToPlain } from 'class-transformer';
+
+@Controller('auth')
+export class UsersController {
+  constructor(private readonly userService: UsersService) {
+  }
+
+  @Post('/signup')
+  async createUser(@Body() body: CreateUserDto) {
+    const user = await this.userService.createUser(body);
+    return instanceToPlain(user);
+  }
+
+  @Get('/:id')
+  async findUser(@Param('id') id: string) {
+    const user = await this.userService.findOne(parseInt(id));
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return instanceToPlain(user);
+  }
+
+  @Get()
+  findAllUsers(@Query('email') email: string) {
+    return this.userService.find(email);
+  }
+
+  @Delete('/:id')
+  removeUser(@Param('id') id: string) {
+    return this.userService.remove(parseInt(id));
+  }
+
+  @Patch('/:id')
+  updateUser(@Param('id') id: string, @Body() body: UpdateUserDto) {
+    return this.userService.update(parseInt(id), body);
+  }
+}
